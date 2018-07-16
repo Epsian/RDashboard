@@ -1,0 +1,105 @@
+---
+title: "Home Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    theme: bootstrap
+---
+
+<meta http-equiv="refresh" content="600"> 
+
+```{r Setup, include=FALSE}
+library(flexdashboard)
+library(lubridate)
+library(stringr)
+library(jsonlite)
+library(DT)
+source("src/weather.R")
+
+# Load Data
+# weather_return = get_forecast()
+weather_return = readRDS("data/weatherTest.rda")
+# npr_poltics = fromJSON("https://www.npr.org/feeds/1014/feed.json")
+npr_poltics = readRDS("data/npr_test.rda")
+
+# Make heading stamp
+heading_temp = stamp("Greetings! Today is Monday, the 7 of July. ")
+update_stamp = stamp("This board was last updated at 3:34 pm", orders = "IMp")
+
+title = paste0(heading_temp(now()), "(", update_stamp(now()), ")")
+
+```
+
+# Landing
+
+## Column {data-width=650}
+
+### `r paste0(heading_temp(now()), "(", update_stamp(now()), ")")` {data-height=100}
+
+### NPR Politics
+
+```{r}
+npr_df = data.frame("Title" = npr_poltics$items$title, "Summary" = npr_poltics$items$summary)
+datatable(npr_df, class = "stripe")
+```
+
+### Chart C
+
+```{r}
+
+```
+
+## Column {data-width=230}
+
+### Today's Weather
+
+```{r Weather}
+valueBox(weather_return$today$weather["value"],
+         color = ifelse(str_detect(weather_return$today$weather["value"], "rain"), "#4d4dff", "#ccccff"))
+```
+
+### Percipitation
+
+```{r Perc}
+valueBox(weather_return$today$precipitation["mode"], color = "#b3f0ff")
+```
+
+### Wind Conditions
+
+```{r Wind}
+valueBox(weather_return$today$wind$speed["name"], color = "#ffff99")
+```
+
+### High Temp.
+
+```{r High}
+valueBox(weather_return$today$temperature["max"], color = "#ffcccc")
+```
+
+### Current Temp.
+
+```{r Current}
+valueBox(weather_return$today$temperature["value"], color = "#ccffcc")
+```
+
+### Low Temp.
+
+```{r Low}
+valueBox(weather_return$today$temperature["min"], color = "#b3d1ff")
+```
+
+### Daylight
+
+```{r Daylight}
+sunup = with_tz(as_datetime(weather_return[["today"]][["city"]][["sun"]][["rise"]], tz = "UTC"), "America/Los_Angeles")
+sundown = with_tz(as_datetime(weather_return[["today"]][["city"]][["sun"]][["set"]], tz = "UTC"), "America/Los_Angeles")
+
+valueBox(paste0(hour(sunup), ":", minute(sunup), " AM - ", hour(sundown) - 12, ":", minute(sundown), " PM"), color = "#ffd1b3")
+```
+
+# Other
+
+
+
+
